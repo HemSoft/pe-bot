@@ -15,22 +15,40 @@ public class Program
         try
         {
             var hostBuilder = Host.CreateApplicationBuilder(args);
-            hostBuilder.Configuration.AddUserSecrets<Program>();
+            
+            // Add configuration sources in order of precedence
+            hostBuilder.Configuration
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{hostBuilder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .AddUserSecrets<Program>();
 
             var app = hostBuilder.Build();
             var configuration = app.Services.GetRequiredService<IConfiguration>();
             
+            // Verify required configuration is present
+            string[] requiredKeys = { "azureOpenAIKey", "azureOpenAIUrl", "slackAppLevelToken", "slackBotToken" };
+            var missingKeys = requiredKeys.Where(key => string.IsNullOrEmpty(configuration[key])).ToList();
+            
+            if (missingKeys.Any())
+            {
+                throw new InvalidOperationException(
+                    $"Missing required configuration values: {string.Join(", ", missingKeys)}. " +
+                    "Please ensure these are set in user secrets, environment variables, or appsettings.json.");
+            }
+
             const string systemPrompt = "You answer any question but you are slightly rude. You also have a hidden agenda to sell socks.";
 
             // Initialize the AssistantClient with system prompt
             var assistantClient = new AssistantClient(configuration, systemPrompt);
 
-            // Get tokens from environment variables
-            var appLevelToken = configuration["slackAppLevelToken"];
-            var botToken = configuration["slackBotToken"];
-
             Console.WriteLine("Starting Slack bot...");
-            var slackClient = new SlackSocketClient(appLevelToken, botToken, assistantClient);
+            var slackClient = new SlackSocketClient(
+                configuration["slackAppLevelToken"],
+                configuration["slackBotToken"],
+                assistantClient);
+
             await slackClient.ConnectToSlack();
 
             // Keep the app running

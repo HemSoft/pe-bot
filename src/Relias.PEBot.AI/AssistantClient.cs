@@ -1,5 +1,9 @@
 namespace Relias.PEBot.AI;
 
+using Azure.Core;
+using Azure.Identity;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,12 +12,6 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-using Azure.Core;
-using Azure.Identity;
-
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Configuration;
 
 /// <summary>
 /// Client for interacting with Azure OpenAI Assistants API.
@@ -44,6 +42,11 @@ public class AssistantClient
 
     public AssistantClient(IConfiguration configuration, string? systemPrompt = null)
     {
+        if (configuration == null)
+        {
+            throw new ArgumentNullException(nameof(configuration));
+        }
+
         _useEntraId = string.Equals(configuration[UseEntraIdKey], "true", StringComparison.OrdinalIgnoreCase);
         
         if (_useEntraId)
@@ -59,11 +62,11 @@ public class AssistantClient
         {
             // Use API key authentication
             _apiKey = configuration["azureOpenAIKey"] ?? 
-                      throw new ArgumentNullException(nameof(_apiKey), "Azure OpenAI Key cannot be null or empty.");
+                      throw new ArgumentNullException("azureOpenAIKey", "Azure OpenAI Key cannot be null or empty when not using Entra ID.");
         }
 
         _apiUrl = configuration["azureOpenAIUrl"] ?? 
-                  throw new ArgumentNullException(nameof(_apiUrl), "Azure OpenAI Url cannot be null or empty.");
+                  throw new ArgumentNullException("azureOpenAIUrl", "Azure OpenAI Url cannot be null or empty.");
         
         // Azure OpenAI Assistants API requires a specific API version
         _apiVersion = configuration["azureOpenAIApiVersion"] ?? ApiVersionDefault;
@@ -86,16 +89,17 @@ public class AssistantClient
         _assistantTools = [FileSearchTool];
         
         // Use existing assistant ID from config or create a new assistant
-        _assistantId = configuration["azureAssistantId"];
+        var configAssistantId = configuration["azureAssistantId"];
         
-        if (string.IsNullOrEmpty(_assistantId))
+        if (string.IsNullOrEmpty(configAssistantId))
         {
             Console.WriteLine("No assistant ID provided in configuration. Creating a new assistant...");
             _assistantId = CreateAssistantAsync(systemPrompt).GetAwaiter().GetResult();
         }
         else
         {
-            Console.WriteLine($"Using existing assistant with ID: {_assistantId}");
+            Console.WriteLine($"Using existing assistant with ID: {configAssistantId}");
+            _assistantId = configAssistantId;
             // Verify the assistant exists and has the file_search tool enabled
             var assistantExists = VerifyAssistantAsync().GetAwaiter().GetResult();
             
@@ -427,9 +431,9 @@ public class AssistantClient
                 var file = new AssistantFile
                 {
                     Id = fileItem.GetProperty("id").GetString() ?? string.Empty,
-                    Object = fileItem.GetProperty("object").GetString(),
+                    Object = fileItem.GetProperty("object").GetString() ?? string.Empty,
                     CreatedAt = fileItem.GetProperty("created_at").GetInt64(),
-                    AssistantId = fileItem.GetProperty("assistant_id").GetString()
+                    AssistantId = fileItem.GetProperty("assistant_id").GetString() ?? string.Empty
                 };
                 
                 result.Add(file);
@@ -769,7 +773,7 @@ public class AssistantClient
 public class AssistantFile
 {
     public string Id { get; set; } = string.Empty;
-    public string? Object { get; set; }
+    public string Object { get; set; } = string.Empty;
     public long CreatedAt { get; set; }
-    public string? AssistantId { get; set; }
+    public string AssistantId { get; set; } = string.Empty;
 }
