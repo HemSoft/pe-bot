@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="SlackNet" Version="0.12.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Relias.PEBot.AI\Relias.PEBot.AI.csproj" />
+  </ItemGroup>
+
+</Project>
