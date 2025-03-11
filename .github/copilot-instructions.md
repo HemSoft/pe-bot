@@ -1,6 +1,8 @@
 ### General
 
 Update changelog.md with any changes.
+Create a new section of the changelog every day there are changes. 
+The changelog should have a header of the current date.
 
 ### Code Guidelines
 
