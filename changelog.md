@@ -2,6 +2,15 @@
 
 All notable changes to the Relias PE-Bot project will be documented in this file.
 
+## 2024-08-21
+
+### Changed
+- Extracted AssistantFile class into its own file from AssistantClient.cs
+- Created new AssistantManager class to handle assistant-related operations
+- Created new AssistantRunManager class to handle run and thread operations
+- Added interfaces IAssistantManager and IAssistantRunManager for better dependency injection support
+- Improved code organization by splitting large files into more focused components
+
 ## 2024-08-20
 
 ### Fixed

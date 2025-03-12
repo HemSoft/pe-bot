@@ -12,3 +12,5 @@ Use readonly local variables where possible.
 Use const strings where possible.
 Remove unused variables.
 Investigate unused methods. Are they needed?
+Don't embed class definitions or enumerations with code methods. Bring them into their own classes. Consider using an Enums and Models folder or similar names to put those extractions into.
+
