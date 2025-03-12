@@ -2,6 +2,86 @@
 
 All notable changes to the Relias PE-Bot project will be documented in this file.
 
+## 2024-08-20
+
+### Fixed
+- Updated ProcessFunctionCallsAsync to directly check run's required_action for tool calls
+- Fixed tool call extraction logic to properly handle Confluence function calls
+- Improved tool output handling to prevent empty responses
+- Added better logging for tool call processing flow
+
+## 2024-08-19
+
+### Changed
+- Updated system prompt to better handle Confluence integration's development status
+- Simplified SearchConfluence method to consistently return implementation pending message
+
+### Fixed
+- Removed duplicate Confluence function registration from Program.cs since they are already registered in AssistantClient constructor
+- Fixed AIFunctionFactory to properly preserve function responses including "Implementation pending" messages
+- Added detailed logging in AIFunctionFactory for better debugging of function invocations
+- Improved error handling in AIFunctionFactory to differentiate between JSON parsing and function invocation errors
+- Updated GetResponseAsync in AssistantClient to properly include all tools in run requests
+- Fixed run creation to combine registered functions with file_search tool
+- Added logging to show number of tools included in run requests
+
+## 2024-08-18
+
+### Fixed
+- Fixed Confluence function callbacks in AssistantClient to properly handle implementation pending messages
+- Improved function execution logging to better diagnose tool call issues
+- Enhanced function argument handling in ProcessFunctionCallsAsync
+- Added detailed logging for function call flow and responses
+
+## 2024-08-17
+
+### Fixed
+- Fixed compiler warnings in `ConfluenceInfoProvider.cs` by properly implementing async patterns with `await` operators
+- Added proper Console logging to all Confluence methods to improve troubleshooting
+- Ensured consistent error handling patterns across all Confluence integration methods
+
+## 2024-08-16
+
+### Changed
+- Updated `ConfluenceInfoProvider.cs` to consistently use the `ImplementationPendingMessage` constant for better user experience
+- Ensured all Confluence API methods return consistent implementation pending messages
+
+## 2024-08-15
+
+### Fixed
+- Enhanced `ProcessFunctionCallsAsync` in AssistantClient to better handle empty responses from Confluence tools
+- Added new `GetFriendlyErrorMessageForFunction` method that provides helpful user-facing messages
+- Improved error detection for "Implementation pending" and empty response conditions
+- Added function-specific error messages for different Confluence API calls
+- Improved error logging for tool call processing
+
+### Changed
+- Updated `ConfluenceInfoProvider.cs` with better error handling and user-friendly messages
+- Added const values for reusable error messages in Confluence provider
+- Applied code guidelines including proper error handling in Confluence methods
+
+## 2024-08-14
+
+### Fixed
+- Identified empty response handling in Confluence integration with SearchConfluence and GetRelatedPages functions
+- Added error handling for Confluence tool calls that return no data
+- Improved fallback responses when Confluence search returns no results
+
+## 2024-08-13
+
+### Fixed
+- Identified issue with Confluence integration where placeholder implementations are returning "Implementation pending" messages
+- Diagnosed function call handling in Assistant API when Confluence functions are called but not fully implemented
+- Improved error handling for empty tool call responses
+
+## 2024-08-12
+
+### Fixed
+- Fixed handling of "requires_action" status in AssistantClient when no tool outputs are available
+- Added fallback mechanism to properly handle function calls when the function isn't registered
+- Improved error recovery for tool calls in the Azure OpenAI assistant integration
+- Enhanced logging for tool call processing to better diagnose issues
+
 ## [Unreleased]
 
 ### Added

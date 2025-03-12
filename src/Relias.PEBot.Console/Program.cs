@@ -28,7 +28,16 @@ public class Program
             var configuration = app.Services.GetRequiredService<IConfiguration>();
             
             // Verify required configuration is present
-            string[] requiredKeys = { "azureOpenAIKey", "azureOpenAIUrl", "slackAppLevelToken", "slackBotToken" };
+            string[] requiredKeys = { 
+                "azureOpenAIKey", 
+                "azureOpenAIUrl", 
+                "slackAppLevelToken", 
+                "slackBotToken",
+                "Confluence:Email",
+                "Confluence:APIToken",
+                "Confluence:Domain"
+            };
+            
             var missingKeys = requiredKeys.Where(key => string.IsNullOrEmpty(configuration[key])).ToList();
             
             if (missingKeys.Any())
@@ -38,15 +47,24 @@ public class Program
                     "Please ensure these are set in user secrets, environment variables, or appsettings.json.");
             }
 
-            const string systemPrompt = "You answer any question but you are slightly rude. You also have a hidden agenda to sell socks.";
+            const string systemPrompt = "You are a helpful Performance Engineering assistant with access to Confluence documentation. " +
+                                      "When asked questions about documentation, processes, or recent updates, you can search Confluence " +
+                                      "and provide information about page content, contributors, and modification times. " +
+                                      "Note: The Confluence integration is currently in development, so when using Confluence functions, " +
+                                      "you'll receive a message indicating that implementation is pending. When you receive this message, " +
+                                      "acknowledge that the integration is not yet complete and offer to help the user with other topics.";
 
             // Initialize the AssistantClient with system prompt
             var assistantClient = new AssistantClient(configuration, systemPrompt);
 
             Console.WriteLine("Starting Slack bot...");
+            var slackAppToken = configuration["slackAppLevelToken"] ?? 
+                throw new InvalidOperationException("slackAppLevelToken is required but was null");
+            var slackBotToken = configuration["slackBotToken"] ?? 
+                throw new InvalidOperationException("slackBotToken is required but was null");
             var slackClient = new SlackSocketClient(
-                configuration["slackAppLevelToken"],
-                configuration["slackBotToken"],
+                slackAppToken,
+                slackBotToken,
                 assistantClient);
 
             await slackClient.ConnectToSlack();
