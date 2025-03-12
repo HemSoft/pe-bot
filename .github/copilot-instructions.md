@@ -6,6 +6,8 @@ The changelog should have a header of the current date.
 
 ### Code Guidelines
 
+Always use file-scoped namespace declaration.
+Always put using statements after the namespace declaration.
 Sort using statements alphabetically.
 Remove unnecessary using statements.
 Use readonly local variables where possible.

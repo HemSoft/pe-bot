@@ -2,6 +2,13 @@
 
 All notable changes to the Relias PE-Bot project will be documented in this file.
 
+## 2024-08-22
+
+### Changed
+- Sorted using statements alphabetically in all source files
+- Added missing System.IO using statement in Program.cs
+- Ensured all using statements are placed after namespace declarations
+
 ## 2024-08-21
 
 ### Changed

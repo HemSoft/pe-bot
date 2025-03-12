@@ -1,21 +1,23 @@
 namespace Relias.PEBot.Console;
 
-using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Relias.PEBot.AI;
 using Relias.PEBot.Slack;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 public class Program
 {
-    public static async Task Main(string[] args)
+    public static async Task Main(string[]args)
     {
         try
         {
             var hostBuilder = Host.CreateApplicationBuilder(args);
-            
+
             // Add configuration sources in order of precedence
             hostBuilder.Configuration
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -26,20 +28,20 @@ public class Program
 
             var app = hostBuilder.Build();
             var configuration = app.Services.GetRequiredService<IConfiguration>();
-            
+
             // Verify required configuration is present
-            string[] requiredKeys = { 
-                "azureOpenAIKey", 
-                "azureOpenAIUrl", 
-                "slackAppLevelToken", 
+            string[] requiredKeys = {
+                "azureOpenAIKey",
+                "azureOpenAIUrl",
+                "slackAppLevelToken",
                 "slackBotToken",
                 "Confluence:Email",
                 "Confluence:APIToken",
                 "Confluence:Domain"
             };
-            
+
             var missingKeys = requiredKeys.Where(key => string.IsNullOrEmpty(configuration[key])).ToList();
-            
+
             if (missingKeys.Any())
             {
                 throw new InvalidOperationException(
