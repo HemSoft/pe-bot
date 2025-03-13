@@ -71,7 +71,6 @@ public class SlackSocketClient
             Console.WriteLine($"Connected as: {botInfo.User} (ID: {botUserId}) to team: {botInfo.Team}");
             Console.WriteLine($"To interact with the bot in channels: @mention it using <@{botUserId}>");
             Console.WriteLine("You can also send direct messages to the bot");
-            Console.WriteLine("Start a message with 'AI' to get a response from the AI chat client");
             Console.WriteLine($"Using AssistantClient: {_assistantClient != null}, Using ChatClient: {_chatClient != null}");
 
             // Print troubleshooting guidance

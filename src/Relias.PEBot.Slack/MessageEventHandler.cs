@@ -58,21 +58,14 @@ public class MessageEventHandler : IEventHandler<MessageEvent>
         // Check if this is a direct mention of our bot
         var isMention = slackEvent.Text.Contains($"<@{_botUserId}>");
         
-        // Check if this message has format "<USERID> AI Real message here."
-        var isAIMessage = slackEvent.Text.Contains("AI ", StringComparison.OrdinalIgnoreCase);
-
-        Console.WriteLine($"Message: '{slackEvent.Text}', IsMention: {isMention}, IsAIMessage: {isAIMessage}, Channel: {slackEvent.Channel}");
+        // Remove the AI prefix check - we'll process all messages without requiring the AI prefix
+        Console.WriteLine($"Message: '{slackEvent.Text}', IsMention: {isMention}, Channel: {slackEvent.Channel}");
 
         // Process ALL messages - we'll respond to @mentions and direct messages
         if (string.IsNullOrEmpty(slackEvent.Subtype))
         {
-            if (isAIMessage && (_assistantClient != null || _chatClient != null))
-            {
-                Console.WriteLine($"Processing AI message from user: {slackEvent.User}");
-                return RespondToAIMessage(slackEvent);
-            }
-            // Check for AI messages
-            else if (isMention)
+            // For @mentions in channels
+            if (isMention)
             {
                 Console.WriteLine($"Processing @mention from user: {slackEvent.User}");
                 return RespondToMention(slackEvent);
@@ -83,7 +76,7 @@ public class MessageEventHandler : IEventHandler<MessageEvent>
                 Console.WriteLine($"Processing direct message from user: {slackEvent.User}");
                 return RespondToMessage(slackEvent);
             }
-            // For public channels - only respond to @mentions
+            // For public channels - only respond to @mentions (handled above)
         }
 
         return Task.CompletedTask;
@@ -140,30 +133,9 @@ public class MessageEventHandler : IEventHandler<MessageEvent>
     {
         try
         {
-            // Clean the message text by removing the mention
-            string cleanText = message.Text.Replace($"<@{_botUserId}>", "").Trim();
-            Console.WriteLine($"Processing mention with text: {cleanText}");
-
-            string response = $"Hi there! I received your mention. You said: '{cleanText}'";
-
-            Console.WriteLine($"Sending response to @mention in channel {message.Channel}: {response}");
-
-            await SendSimpleMessage(message.Channel, response, message.ThreadTs ?? message.Ts);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ERROR responding to mention: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
-        }
-    }
-
-    private async Task RespondToAIMessage(MessageEvent message)
-    {
-        try
-        {
             if (_assistantClient == null && _chatClient == null)
             {
-                Console.WriteLine("Both AssistantClient and ChatClient are not initialized. Cannot process AI message.");
+                Console.WriteLine("Both AssistantClient and ChatClient are not initialized. Cannot process mention.");
                 await SendSimpleMessage(
                     message.Channel,
                     AIUnavailableMessage,
@@ -171,16 +143,9 @@ public class MessageEventHandler : IEventHandler<MessageEvent>
                 return;
             }
 
-            // Extract the actual message text after "AI "
-            string cleanText = message.Text;
-            int aiIndex = cleanText.IndexOf("> AI ", StringComparison.OrdinalIgnoreCase);
-            if (aiIndex >= 0)
-            {
-                // Get everything after "AI "
-                cleanText = cleanText.Substring(aiIndex + 5).Trim();
-            }
-            
-            Console.WriteLine($"Sending message to AI: {cleanText}");
+            // Clean the message text by removing the mention
+            string cleanText = message.Text.Replace($"<@{_botUserId}>", "").Trim();
+            Console.WriteLine($"Processing mention with text: {cleanText}");
             
             // First, send a processing message
             await SendSimpleMessage(message.Channel, ProcessingMessage, message.ThreadTs ?? message.Ts);
@@ -189,9 +154,31 @@ public class MessageEventHandler : IEventHandler<MessageEvent>
 
             if (_useAssistantClient && _assistantClient != null)
             {
-                // Use the AssistantClient
-                _assistantClient.AddUserMessage(cleanText);
-                response = await _assistantClient.GetResponseAsync();
+                try
+                {
+                    // Use the AssistantClient
+                    _assistantClient.AddUserMessage(cleanText);
+                    response = await _assistantClient.GetResponseAsync();
+                }
+                catch (Exception aiEx)
+                {
+                    Console.WriteLine($"Error from AssistantClient: {aiEx.Message}");
+                    Console.WriteLine($"Stack trace: {aiEx.StackTrace}");
+                    
+                    // The AssistantClient should provide a fallback response
+                    // If it doesn't, use a generic error message
+                    if (aiEx.Message.Contains("Run failed with status failed"))
+                    {
+                        // Let the AssistantClient handle this with its fallback mechanism
+                        // Just rethrow to be caught by the outer catch
+                        throw;
+                    }
+                    else
+                    {
+                        // For other errors, use a generic error message
+                        response = $"{AIRequestErrorPrefix}{aiEx.Message}";
+                    }
+                }
             }
             else if (_chatClient != null)
             {
@@ -211,15 +198,15 @@ public class MessageEventHandler : IEventHandler<MessageEvent>
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ERROR processing AI message: {ex.Message}");
+            Console.WriteLine($"ERROR responding to mention: {ex.Message}");
             Console.WriteLine($"Stack trace: {ex.StackTrace}");
             
             // Send error message to Slack
-            string errorMessage = $"{AIRequestErrorPrefix}{ex.Message}";
+            string errorMessage = $"{ErrorMessagePrefix}{ex.Message}";
             await SendSimpleMessage(message.Channel, errorMessage, message.ThreadTs ?? message.Ts);
         }
     }
-    
+
     private async Task SendSimpleMessage(string channel, string text, string? threadTs = null)
     {
         // For simple messages or error messages, use standard text message

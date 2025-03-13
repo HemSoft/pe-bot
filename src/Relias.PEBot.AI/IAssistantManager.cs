@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 /// </summary>
 public interface IAssistantManager
 {
-    Task<bool> VerifyAssistantAsync();
-    Task UpdateAssistantVectorStoreAsync();
+    Task<bool> VerifyAssistantAsync(string? systemPrompt = null);
     Task UpdateAssistantToolsAsync();
-    Task<string> CreateAssistantAsync(string? systemPrompt);
     Task<string> CreateThreadAsync();
     Task<IList<AssistantFile>> GetAssistantFilesAsync();
     Task<IList<string>> GetAssistantVectorStoresAsync();

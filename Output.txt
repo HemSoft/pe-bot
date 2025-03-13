@@ -1,0 +1,669 @@
+Using existing assistant with ID: asst_N0PXKrYQP6Pw9Q8ru2rZAtud
+AssistantClient initialized with Assistant ID: asst_N0PXKrYQP6Pw9Q8ru2rZAtud and Thread ID: thread_szbKq46sr4Jhaqt0DbTF3hle
+Initializing ConfluenceInfoProvider with URL: https://relias.atlassian.net
+API base URL: https://relias.atlassian.net/wiki/api/v2
+Validating Confluence configuration by accessing: https://relias.atlassian.net/wiki/api/v2/spaces
+Validation response status code: OK
+Confluence configuration validated successfully
+Confluence functions registered with assistant
+Starting Slack bot...
+SlackSocketClient initialized with AssistantClient
+Getting bot info...
+Bot info retrieved - Name: pe_bot, ID: U08GJU7S7BM, Team: Relias Engineering
+Registering message event handler...
+MessageEventHandler initialized with bot ID: U08GJU7S7BM
+Using AssistantClient: True
+Connecting socket mode client...
+Socket Mode connection successful!
+
+======= BOT CONNECTED SUCCESSFULLY =======
+Connected as: pe_bot (ID: U08GJU7S7BM) to team: Relias Engineering
+To interact with the bot in channels: @mention it using <@U08GJU7S7BM>
+You can also send direct messages to the bot
+Start a message with 'AI' to get a response from the AI chat client
+Using AssistantClient: True, Using ChatClient: False
+===== TROUBLESHOOTING =====
+If the bot isn't responding, check the following:
+1. Ensure Events API is enabled in your Slack App configuration
+2. Verify the app has these required scopes:
+   - chat:write
+   - channels:history
+   - groups:history
+   - im:history
+3. Verify the app is subscribed to these events:
+   - message.channels
+   - message.im
+4. Make sure the bot is invited to the channel you're testing in
+5. Socket Mode must be enabled in your Slack app configuration
+Bot is now listening for messages. Press Ctrl+C to exit.
+[EVENT RECEIVED] Type: message, Subtype: , User: U2XMZDPJ7, Text: <@U08GJU7S7BM> AI Search confluence for Onboarding. Only give me documents that have been updated less than a year ago.
+Message: '<@U08GJU7S7BM> AI Search confluence for Onboarding. Only give me documents that have been updated less than a year ago.', IsMention: True, IsAIMessage: True, Channel: C08GHQC0LVC
+Processing AI message from user: U2XMZDPJ7
+Sending message to AI: Search confluence for Onboarding. Only give me documents that have been updated less than a year ago.
+Creating run with 7 tools...
+[EVENT RECEIVED] Type: message, Subtype: , User: U08GJU7S7BM, Text: Processing your request...
+Ignoring message from bot itself or empty message
+Run requires action - processing tool calls
+Checking run response for required actions...
+Raw response: {
+  "id": "run_Pkt8rKuf8iY7d1lfRYftM9dq",
+  "object": "thread.run",
+  "created_at": 1741817403,
+  "assistant_id": "asst_N0PXKrYQP6Pw9Q8ru2rZAtud",
+  "thread_id": "thread_szbKq46sr4Jhaqt0DbTF3hle",
+  "status": "requires_action",
+  "started_at": 1741817404,
+  "expires_at": 1741818003,
+  "cancelled_at": null,
+  "failed_at": null,
+  "completed_at": null,
+  "required_action": {
+    "type": "submit_tool_outputs",
+    "submit_tool_outputs": {
+      "tool_calls": [
+        {
+          "id": "call_P3Bgvr6BeFblI1b6sBQ5XD20",
+          "type": "function",
+          "function": {
+            "name": "GetRecentUpdates",
+            "arguments": "{\"topic\":\"Onboarding\"}"
+          }
+        }
+      ]
+    }
+  },
+  "last_error": null,
+  "model": "gpt-4o-mini",
+  "instructions": "You are aiding engineers in setting up their workstations. They are either a new hire setting up a new workstation or they are an existing employee setting up a new workstation or upgrading their existing one. You are friendly and you are helping them solve issues related to their software installs and setup. Use the data files as your main material as they are Relias (our company) specific.\n\nIn addition, you have been given resources such as the 2024 Employee Handbook and other Relias specific documents to aid in answering questions related to those topics.\n\nYou will keep the conversation appropriate and related to Relias and the process of setting up a workstation, onboarding and any HR related questions that you can answer based on the material provided to you.",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "SearchConfluence",
+        "description": "I need to find documentation in Confluence about {query}",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "What topic are you looking for information about?"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GetPageContent",
+        "description": "Can you show me the content of the Confluence page with ID {pageId}?",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "pageId": {
+              "type": "string",
+              "description": "What is the ID of the page you want to see?"
+            }
+          },
+          "required": [
+            "pageId"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GetRelatedPages",
+        "description": "What documentation do we have in Confluence about {topic}?",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "type": "string",
+              "description": "What topic would you like to learn more about?"
+            }
+          },
+          "required": [
+            "topic"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GetPageLastModified",
+        "description": "What was the last time the Confluence page {pageId} was updated?",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "pageId": {
+              "type": "string",
+              "description": "Which page's update time do you want to know?"
+            }
+          },
+          "required": [
+            "pageId"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GetPageContributors",
+        "description": "Who has recently made changes to the Confluence page {pageId}?",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "pageId": {
+              "type": "string",
+              "description": "Which page's contributors do you want to see?"
+            }
+          },
+          "required": [
+            "pageId"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GetRecentUpdates",
+        "description": "What are the most recently updated pages in Confluence about {topic}?",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "type": "string",
+              "description": "What topic's recent updates would you like to see?"
+            }
+          },
+          "required": [
+            "topic"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "file_search"
+    }
+  ],
+  "tool_resources": {},
+  "metadata": {},
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "max_completion_tokens": null,
+  "max_prompt_tokens": null,
+  "truncation_strategy": {
+    "type": "auto",
+    "last_messages": null
+  },
+  "incomplete_details": null,
+  "usage": null,
+  "response_format": "auto",
+  "tool_choice": "auto",
+  "parallel_tool_calls": true
+}
+Found required_action: {
+    "type": "submit_tool_outputs",
+    "submit_tool_outputs": {
+      "tool_calls": [
+        {
+          "id": "call_P3Bgvr6BeFblI1b6sBQ5XD20",
+          "type": "function",
+          "function": {
+            "name": "GetRecentUpdates",
+            "arguments": "{\"topic\":\"Onboarding\"}"
+          }
+        }
+      ]
+    }
+  }
+Found 1 tool calls
+Processing tool call call_P3Bgvr6BeFblI1b6sBQ5XD20 for function GetRecentUpdates
+Arguments: {"topic":"Onboarding"}
+Executing function GetRecentUpdates...
+Invoking GetRecentUpdates with arguments: {"topic":"Onboarding"}
+Extracting parameter topic from arguments
+Calling GetRecentUpdates with parameters: Onboarding
+Extracting parameter topic from arguments
+Filtering for dates after: 2024-03-12
+Making API request to: https://relias.atlassian.net/wiki/api/v2/search?cql=type%20%3D%20page%20AND%20%28title%20CONTAINS%20%22Onboarding%22%20OR%20text%20CONTAINS%20%22Onboarding%22%29%20AND%20lastmodified%20%3E%3D%20%222024-03-12%22%20ORDER%20BY%20lastmodified%20DESC&limit=5&expand=version,space
+Retrying with v1 API: https://relias.atlassian.net/wiki/rest/api/content/search?cql=type%20%3D%20page%20AND%20%28title%20CONTAINS%20%22Onboarding%22%20OR%20text%20CONTAINS%20%22Onboarding%22%29%20AND%20lastmodified%20%3E%3D%20%222024-03-12%22%20ORDER%20BY%20lastmodified%20DESC&limit=5&expand=version,space
+Response status code: BadRequest
+Error response content: {"statusCode":400,"data":{"authorized":true,"valid":true,"errors":[],"successful":true},"message":"com.atlassian.confluence.api.service.exceptions.BadRequestException: Could not parse cql : "}
+Error in GetRecentUpdates: API request failed. Status: BadRequest, Content: {"statusCode":400,"data":{"authorized":true,"valid":true,"errors":[],"successful":true},"message":"com.atlassian.confluence.api.service.exceptions.BadRequestException: Could not parse cql : "}
+Function GetRecentUpdates returned: I encountered an error while retrieving recent updates: API request failed. Status: BadRequest, Content: {"statusCode":400,"data":{"authorized":true,"valid":true,"errors":[],"successful":true},"message":"com.atlassian.confluence.api.service.exceptions.BadRequestException: Could not parse cql : "}
+Function GetRecentUpdates returned: I encountered an error while retrieving recent updates: API request failed. Status: BadRequest, Content: {"statusCode":400,"data":{"authorized":true,"valid":true,"errors":[],"successful":true},"message":"com.atlassian.confluence.api.service.exceptions.BadRequestException: Could not parse cql : "}
+Added result to tool outputs: I encountered an error while retrieving recent updates: API request failed. Status: BadRequest, Content: {"statusCode":400,"data":{"authorized":true,"valid":true,"errors":[],"successful":true},"message":"com.atlassian.confluence.api.service.exceptions.BadRequestException: Could not parse cql : "}
+Returning 1 tool outputs
+Tool call_P3Bgvr6BeFblI1b6sBQ5XD20: I encountered an error while retrieving recent updates: API request failed. Status: BadRequest, Content: {"statusCode":400,"data":{"authorized":true,"valid":true,"errors":[],"successful":true},"message":"com.atlassian.confluence.api.service.exceptions.BadRequestException: Could not parse cql : "}
+Submitting 1 tool outputs
+Run requires action - processing tool calls
+Checking run response for required actions...
+Raw response: {
+  "id": "run_Pkt8rKuf8iY7d1lfRYftM9dq",
+  "object": "thread.run",
+  "created_at": 1741817403,
+  "assistant_id": "asst_N0PXKrYQP6Pw9Q8ru2rZAtud",
+  "thread_id": "thread_szbKq46sr4Jhaqt0DbTF3hle",
+  "status": "requires_action",
+  "started_at": 1741817409,
+  "expires_at": 1741818003,
+  "cancelled_at": null,
+  "failed_at": null,
+  "completed_at": null,
+  "required_action": {
+    "type": "submit_tool_outputs",
+    "submit_tool_outputs": {
+      "tool_calls": [
+        {
+          "id": "call_Ztyd3RZ9cul3PCr58uYgdeqi",
+          "type": "function",
+          "function": {
+            "name": "SearchConfluence",
+            "arguments": "{\"query\":\"Onboarding\"}"
+          }
+        }
+      ]
+    }
+  },
+  "last_error": null,
+  "model": "gpt-4o-mini",
+  "instructions": "You are aiding engineers in setting up their workstations. They are either a new hire setting up a new workstation or they are an existing employee setting up a new workstation or upgrading their existing one. You are friendly and you are helping them solve issues related to their software installs and setup. Use the data files as your main material as they are Relias (our company) specific.\n\nIn addition, you have been given resources such as the 2024 Employee Handbook and other Relias specific documents to aid in answering questions related to those topics.\n\nYou will keep the conversation appropriate and related to Relias and the process of setting up a workstation, onboarding and any HR related questions that you can answer based on the material provided to you.",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "SearchConfluence",
+        "description": "I need to find documentation in Confluence about {query}",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "What topic are you looking for information about?"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GetPageContent",
+        "description": "Can you show me the content of the Confluence page with ID {pageId}?",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "pageId": {
+              "type": "string",
+              "description": "What is the ID of the page you want to see?"
+            }
+          },
+          "required": [
+            "pageId"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GetRelatedPages",
+        "description": "What documentation do we have in Confluence about {topic}?",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "type": "string",
+              "description": "What topic would you like to learn more about?"
+            }
+          },
+          "required": [
+            "topic"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GetPageLastModified",
+        "description": "What was the last time the Confluence page {pageId} was updated?",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "pageId": {
+              "type": "string",
+              "description": "Which page's update time do you want to know?"
+            }
+          },
+          "required": [
+            "pageId"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GetPageContributors",
+        "description": "Who has recently made changes to the Confluence page {pageId}?",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "pageId": {
+              "type": "string",
+              "description": "Which page's contributors do you want to see?"
+            }
+          },
+          "required": [
+            "pageId"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "GetRecentUpdates",
+        "description": "What are the most recently updated pages in Confluence about {topic}?",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "type": "string",
+              "description": "What topic's recent updates would you like to see?"
+            }
+          },
+          "required": [
+            "topic"
+          ]
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "file_search"
+    }
+  ],
+  "tool_resources": {},
+  "metadata": {},
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "max_completion_tokens": null,
+  "max_prompt_tokens": null,
+  "truncation_strategy": {
+    "type": "auto",
+    "last_messages": null
+  },
+  "incomplete_details": null,
+  "usage": null,
+  "response_format": "auto",
+  "tool_choice": "auto",
+  "parallel_tool_calls": true
+}
+Found required_action: {
+    "type": "submit_tool_outputs",
+    "submit_tool_outputs": {
+      "tool_calls": [
+        {
+          "id": "call_Ztyd3RZ9cul3PCr58uYgdeqi",
+          "type": "function",
+          "function": {
+            "name": "SearchConfluence",
+            "arguments": "{\"query\":\"Onboarding\"}"
+          }
+        }
+      ]
+    }
+  }
+Found 1 tool calls
+Processing tool call call_Ztyd3RZ9cul3PCr58uYgdeqi for function SearchConfluence
+Arguments: {"query":"Onboarding"}
+Executing function SearchConfluence...
+Invoking SearchConfluence with arguments: {"query":"Onboarding"}
+Extracting parameter query from arguments
+Calling SearchConfluence with parameters: Onboarding
+Extracting parameter query from arguments
+SearchConfluence called with query: Onboarding
+Making search API request to: https://relias.atlassian.net/wiki/api/v2/search?type=page&query=Onboarding
+Retrying with v1 API: https://relias.atlassian.net/wiki/rest/api/content/search?cql=type%3Dpage%20AND%20%28title%20~%20%22Onboarding%22%20OR%20text%20~%20%22Onboarding%22%29&limit=10&expand=title,space,version
+Search response status code: OK
+Function SearchConfluence returned: Found 10 relevant pages in Confluence:
+
+?? Scrummy Bears - Roles + Responsibilities
+   Space: Software Development (RLPD)
+   Last Updated: 2 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/994246881
+
+?? Data Lake Security Matrix
+   Space: BI Project (BI)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/BI/pages/983925096
+
+?? Developer onboarding for the Kalamata Application
+   Space: Relias Analytics (RANLYT)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RANLYT/pages/977207336
+
+?? Test Engineering Bootcamp - Mahmuda
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/967606297
+
+?? Test Engineering Bootcamp - Robbie
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869695598
+
+?? Test Engineering Bootcamp - Sam
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869597335
+
+?? Test Engineering Bootcamp - Antoin
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869597329
+
+?? Scrummy Bears - Sprints + Improvements
+   Space: Software Development (RLPD)
+   Last Updated: 11 months ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869466166
+
+?? Velocity Raptors - Roles + Responsibilities
+   Space: Software Development (RLPD)
+   Last Updated: 2 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/809009276
+
+?? Test Engineering Bootcamp - Shilpa
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/742719983
+Function SearchConfluence returned: Found 10 relevant pages in Confluence:
+
+?? Scrummy Bears - Roles + Responsibilities
+   Space: Software Development (RLPD)
+   Last Updated: 2 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/994246881
+
+?? Data Lake Security Matrix
+   Space: BI Project (BI)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/BI/pages/983925096
+
+?? Developer onboarding for the Kalamata Application
+   Space: Relias Analytics (RANLYT)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RANLYT/pages/977207336
+
+?? Test Engineering Bootcamp - Mahmuda
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/967606297
+
+?? Test Engineering Bootcamp - Robbie
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869695598
+
+?? Test Engineering Bootcamp - Sam
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869597335
+
+?? Test Engineering Bootcamp - Antoin
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869597329
+
+?? Scrummy Bears - Sprints + Improvements
+   Space: Software Development (RLPD)
+   Last Updated: 11 months ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869466166
+
+?? Velocity Raptors - Roles + Responsibilities
+   Space: Software Development (RLPD)
+   Last Updated: 2 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/809009276
+
+?? Test Engineering Bootcamp - Shilpa
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/742719983
+Added result to tool outputs: Found 10 relevant pages in Confluence:
+
+?? Scrummy Bears - Roles + Responsibilities
+   Space: Software Development (RLPD)
+   Last Updated: 2 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/994246881
+
+?? Data Lake Security Matrix
+   Space: BI Project (BI)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/BI/pages/983925096
+
+?? Developer onboarding for the Kalamata Application
+   Space: Relias Analytics (RANLYT)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RANLYT/pages/977207336
+
+?? Test Engineering Bootcamp - Mahmuda
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/967606297
+
+?? Test Engineering Bootcamp - Robbie
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869695598
+
+?? Test Engineering Bootcamp - Sam
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869597335
+
+?? Test Engineering Bootcamp - Antoin
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869597329
+
+?? Scrummy Bears - Sprints + Improvements
+   Space: Software Development (RLPD)
+   Last Updated: 11 months ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869466166
+
+?? Velocity Raptors - Roles + Responsibilities
+   Space: Software Development (RLPD)
+   Last Updated: 2 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/809009276
+
+?? Test Engineering Bootcamp - Shilpa
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/742719983
+Returning 1 tool outputs
+Tool call_Ztyd3RZ9cul3PCr58uYgdeqi: Found 10 relevant pages in Confluence:
+
+?? Scrummy Bears - Roles + Responsibilities
+   Space: Software Development (RLPD)
+   Last Updated: 2 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/994246881
+
+?? Data Lake Security Matrix
+   Space: BI Project (BI)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/BI/pages/983925096
+
+?? Developer onboarding for the Kalamata Application
+   Space: Relias Analytics (RANLYT)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RANLYT/pages/977207336
+
+?? Test Engineering Bootcamp - Mahmuda
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/967606297
+
+?? Test Engineering Bootcamp - Robbie
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869695598
+
+?? Test Engineering Bootcamp - Sam
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869597335
+
+?? Test Engineering Bootcamp - Antoin
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869597329
+
+?? Scrummy Bears - Sprints + Improvements
+   Space: Software Development (RLPD)
+   Last Updated: 11 months ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/869466166
+
+?? Velocity Raptors - Roles + Responsibilities
+   Space: Software Development (RLPD)
+   Last Updated: 2 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/809009276
+
+?? Test Engineering Bootcamp - Shilpa
+   Space: Software Development (RLPD)
+   Last Updated: 4 years ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/742719983
+Submitting 1 tool outputs
+Received AI response: Here are the Confluence documents related to "Onboarding" that have been updated less than a year ago:
+
+1. **Scrummy Bears - Sprints + Improvements**
+   - Last Updated: 11 months ago
+   - [View Document](https://relias.atlassian.net/wiki/spaces/RLPD/pages/869466166)
+
+Unfortunately, there doesn't appear to be any other documents related to onboarding that were updated in the past year. Let me know if you need further assistance!
+Sending AI response to channel C08GHQC0LVC
+[EVENT RECEIVED] Type: message, Subtype: , User: U08GJU7S7BM, Text: Here are the Confluence documents related to "Onboarding" that have been updated less than a year ago:  1. *Scrummy Bears - Sprints + Improvements*    - Last Updated: 11 months ago    - [View Document](https://relias.atlassian.net/wiki/spaces/RLPD/pages/869466166)  Unfortunately, there doesn't appear to be any other documents related to onboarding that were updated in the past year. Let me know if you need further assistance!
+Ignoring message from bot itself or empty message

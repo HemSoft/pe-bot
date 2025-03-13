@@ -23,6 +23,7 @@ public class AssistantRunManager : IAssistantRunManager
     private const int MaxRetries = 100;
     private const int InitialDelayMs = 1000;
     private const int MaxDelayMs = 5000;
+    private const string DefaultDeploymentName = "assistants";
 
     public AssistantRunManager(
         HttpClient httpClient, 
@@ -38,10 +39,15 @@ public class AssistantRunManager : IAssistantRunManager
         _functions = functions;
     }
 
+    private string GetAssistantUrl(string path)
+    {
+        return $"{_apiUrl}/openai/deployments/{DefaultDeploymentName}/{path}?api-version={_apiVersion}";
+    }
+
     public async Task<Dictionary<string, string>> ProcessFunctionCallsAsync(string runId)
     {
         var toolOutputs = new Dictionary<string, string>();
-        var requestUrl = $"{_apiUrl}/openai/threads/{_threadId}/runs/{runId}?api-version={_apiVersion}";
+        var requestUrl = GetAssistantUrl($"threads/{_threadId}/runs/{runId}");
         var response = await _httpClient.GetAsync(requestUrl);
         
         if (!response.IsSuccessStatusCode)
@@ -71,55 +77,43 @@ public class AssistantRunManager : IAssistantRunManager
                 
                 Console.WriteLine($"Processing tool call {toolCallId} for function {functionName}");
                 Console.WriteLine($"Arguments: {arguments}");
-                
-                // Find matching registered function
-                var registeredFunction = _functions.FirstOrDefault(f => f.Name == functionName);
-                if (registeredFunction != null && !string.IsNullOrEmpty(arguments))
+
+                var matchingFunction = _functions.FirstOrDefault(f => f.Name == functionName);
+                if (matchingFunction != null)
                 {
                     try
                     {
-                        Console.WriteLine($"Executing function {functionName}...");
-                        var result = await registeredFunction.InvokeAsync(arguments);
-                        Console.WriteLine($"Function {functionName} returned: {result}");
-                        
-                        toolOutputs[toolCallId] = result;
-                        Console.WriteLine($"Added result to tool outputs: {result}");
+                        var result = await matchingFunction.InvokeAsync(arguments ?? string.Empty);
+                        Console.WriteLine($"Function returned: {result}");
+                        if (toolCallId != null)
+                        {
+                            toolOutputs[toolCallId] = result;
+                            Console.WriteLine($"Added result to tool outputs: {toolCallId} = {result}");
+                        }
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error executing function {functionName}: {ex.Message}");
-                        Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                        var errorMessage = $"Error executing function {functionName}: {ex.Message}";
-                        toolOutputs[toolCallId] = errorMessage;
+                        if (toolCallId != null)
+                        {
+                            toolOutputs[toolCallId] = $"Error: {ex.Message}";
+                        }
                     }
                 }
                 else
                 {
-                    var errorMessage = registeredFunction == null
-                        ? $"Function {functionName} not found in registered functions"
-                        : $"Function {functionName} received invalid arguments: {arguments}";
-                    
-                    Console.WriteLine(errorMessage);
-                    toolOutputs[toolCallId] = errorMessage;
+                    Console.WriteLine($"No matching function found for {functionName}");
                 }
             }
         }
-        else
-        {
-            Console.WriteLine("No required_action found in run status");
-        }
 
         Console.WriteLine($"Returning {toolOutputs.Count} tool outputs");
-        foreach (var kvp in toolOutputs)
-        {
-            Console.WriteLine($"Tool {kvp.Key}: {kvp.Value}");
-        }
         return toolOutputs;
     }
 
     public async Task SubmitToolOutputsAsync(string runId, Dictionary<string, string> toolOutputs)
     {
-        var requestUrl = $"{_apiUrl}/openai/threads/{_threadId}/runs/{runId}/submit_tool_outputs?api-version={_apiVersion}";
+        var requestUrl = GetAssistantUrl($"threads/{_threadId}/runs/{runId}/submit_tool_outputs");
         
         if (!toolOutputs.Any())
         {
@@ -163,8 +157,7 @@ public class AssistantRunManager : IAssistantRunManager
         {
             await Task.Delay(delayMs);
             
-            // Get run status
-            var requestUrl = $"{_apiUrl}/openai/threads/{_threadId}/runs/{runId}?api-version={_apiVersion}";
+            var requestUrl = GetAssistantUrl($"threads/{_threadId}/runs/{runId}");
             var response = await _httpClient.GetAsync(requestUrl);
             
             if (!response.IsSuccessStatusCode)
@@ -175,6 +168,7 @@ public class AssistantRunManager : IAssistantRunManager
             
             using var responseBody = await response.Content.ReadAsStreamAsync();
             using var document = await JsonDocument.ParseAsync(responseBody);
+            
             status = document.RootElement.GetProperty("status").GetString() ?? 
                     throw new InvalidOperationException("Failed to get status from response");
             
@@ -184,20 +178,19 @@ public class AssistantRunManager : IAssistantRunManager
                 throw new TimeoutException("Maximum retries reached waiting for run completion");
             }
             
-            // If still in progress, increase delay with exponential backoff (cap at 5 seconds)
             if (status == "queued" || status == "in_progress")
             {
                 delayMs = Math.Min(delayMs * 2, MaxDelayMs);
             }
             
-        } while (status == "queued" || status == "in_progress"); // Stop polling when we hit requires_action
+        } while (status == "queued" || status == "in_progress");
         
         return status;
     }
 
     public async Task<string> AddMessageToThreadAsync(string role, string content)
     {
-        var requestUrl = $"{_apiUrl}/openai/threads/{_threadId}/messages?api-version={_apiVersion}";
+        var requestUrl = GetAssistantUrl($"threads/{_threadId}/messages");
         
         var messageRequest = new
         {
@@ -226,7 +219,7 @@ public class AssistantRunManager : IAssistantRunManager
 
     public async Task<string> GetLatestAssistantMessageAsync()
     {
-        var messageRequestUrl = $"{_apiUrl}/openai/threads/{_threadId}/messages?order=desc&limit=1&api-version={_apiVersion}";
+        var messageRequestUrl = GetAssistantUrl($"threads/{_threadId}/messages");
         var messageResponse = await _httpClient.GetAsync(messageRequestUrl);
         
         if (!messageResponse.IsSuccessStatusCode)

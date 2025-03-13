@@ -22,7 +22,7 @@ public class AssistantManager : IAssistantManager
     private readonly string? _vectorStoreId;
 
     private const string FileSearchTool = "file_search";
-    private const string DefaultModel = "gpt-4o-mini";
+    private const string DefaultDeploymentName = "assistants";
     private const string ContentType = "application/json";
     private const string ErrorNotFound = "404";
     
@@ -36,9 +36,19 @@ public class AssistantManager : IAssistantManager
         _assistantTools = [FileSearchTool];
     }
 
-    public async Task<bool> VerifyAssistantAsync()
+    private string GetAssistantUrl(string? path = null)
     {
-        var requestUrl = $"{_apiUrl}/openai/assistants/{_assistantId}?api-version={_apiVersion}";
+        var baseUrl = $"{_apiUrl}/openai/deployments/{DefaultDeploymentName}";
+        if (!string.IsNullOrEmpty(path))
+        {
+            baseUrl = $"{baseUrl}/{path}";
+        }
+        return $"{baseUrl}?api-version={_apiVersion}";
+    }
+
+    public async Task<bool> VerifyAssistantAsync(string? systemPrompt = null)
+    {
+        var requestUrl = GetAssistantUrl($"assistants/{_assistantId}");
         
         try
         {
@@ -47,20 +57,29 @@ public class AssistantManager : IAssistantManager
             if (!response.IsSuccessStatusCode)
             {
                 var errorBody = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Failed to verify assistant: {response.StatusCode}. Details: {errorBody}");
+                Console.WriteLine($"Error verifying assistant: {response.StatusCode}. Details: {errorBody}");
                 return false;
             }
 
-            var responseBody = await response.Content.ReadAsStreamAsync();
-            using var document = await JsonDocument.ParseAsync(responseBody);
+            Console.WriteLine($"Successfully verified assistant {_assistantId} exists");
             
-            // Check if the assistant has the file_search tool enabled
-            var hasFileSearchTool = await VerifyFileSearchToolAsync(document);
-            
-            // Check for vector store configuration
-            if (!string.IsNullOrEmpty(_vectorStoreId))
+            try
             {
-                await VerifyVectorStoreAsync(document);
+                if (!string.IsNullOrEmpty(systemPrompt))
+                {
+                    await UpdateAssistantInstructionsAsync(systemPrompt);
+                }
+
+                if (!string.IsNullOrEmpty(_vectorStoreId))
+                {
+                    var responseBody = await response.Content.ReadAsStreamAsync();
+                    using var document = await JsonDocument.ParseAsync(responseBody);
+                    await VerifyVectorStoreAsync(document);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Assistant exists but updates failed: {ex.Message}");
             }
             
             return true;
@@ -70,6 +89,28 @@ public class AssistantManager : IAssistantManager
             Console.WriteLine($"Error verifying assistant: {ex.Message}");
             return false;
         }
+    }
+
+    public async Task<string> CreateThreadAsync()
+    {
+        var requestUrl = GetAssistantUrl("threads");
+        
+        var response = await _httpClient.PostAsync(requestUrl, new StringContent("{}", Encoding.UTF8, ContentType));
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to create thread: {response.StatusCode}. Details: {errorBody}");
+        }
+        
+        var responseBody = await response.Content.ReadAsStreamAsync();
+        using var document = await JsonDocument.ParseAsync(responseBody);
+        
+        var threadId = document.RootElement.GetProperty("id").GetString() ?? 
+            throw new InvalidOperationException("Failed to get thread ID from response");
+        
+        Console.WriteLine($"Created new thread with ID: {threadId}");
+        return threadId;
     }
 
     private async Task<bool> VerifyFileSearchToolAsync(JsonDocument document)
@@ -100,88 +141,36 @@ public class AssistantManager : IAssistantManager
         }
     }
 
-    private async Task VerifyVectorStoreAsync(JsonDocument document)
+    private Task VerifyVectorStoreAsync(JsonDocument document)
     {
-        if (document.RootElement.TryGetProperty("tool_resources", out var toolResourcesProperty) && 
-            toolResourcesProperty.TryGetProperty("file_search", out var fileSearchProperty) && 
-            fileSearchProperty.TryGetProperty("vector_store_ids", out var vectorStoreIdsProperty))
+        if (!document.RootElement.TryGetProperty("tool_resources", out var toolResourcesProperty) || 
+            !toolResourcesProperty.TryGetProperty("file_search", out var fileSearchProperty) || 
+            !fileSearchProperty.TryGetProperty("vector_store_ids", out var vectorStoreIdsProperty))
         {
-            var vectorStoreIds = new List<string>();
-            foreach (var id in vectorStoreIdsProperty.EnumerateArray())
-            {
-                vectorStoreIds.Add(id.GetString() ?? string.Empty);
-            }
-            
-            Console.WriteLine($"Assistant uses {vectorStoreIds.Count} vector stores: {string.Join(", ", vectorStoreIds)}");
+            throw new InvalidOperationException($"Assistant {_assistantId} is missing required vector store configuration");
         }
-        else
-        {
-            Console.WriteLine("Assistant does not have a vector store configured. Will attempt to add it.");
-            await UpdateAssistantVectorStoreAsync();
-        }
-    }
 
-    public async Task UpdateAssistantVectorStoreAsync()
-    {
-        if (string.IsNullOrEmpty(_vectorStoreId))
+        var vectorStoreConfigured = false;
+        foreach (var id in vectorStoreIdsProperty.EnumerateArray())
         {
-            Console.WriteLine("No vector store ID configured. Skipping vector store update.");
-            return;
-        }
-        
-        var requestUrl = $"{_apiUrl}/openai/assistants/{_assistantId}?api-version={_apiVersion}";
-        
-        var toolResources = new
-        {
-            file_search = new
+            if (id.GetString() == _vectorStoreId)
             {
-                vector_store_ids = new[] { _vectorStoreId }
+                vectorStoreConfigured = true;
+                break;
             }
-        };
-        
-        var updateRequest = new
-        {
-            tool_resources = toolResources
-        };
-
-        var content = new StringContent(
-            JsonSerializer.Serialize(updateRequest),
-            Encoding.UTF8,
-            ContentType);
-
-        var request = new HttpRequestMessage(HttpMethod.Patch, requestUrl)
-        {
-            Content = content
-        };
-
-        var response = await _httpClient.SendAsync(request);
-        
-        if (!response.IsSuccessStatusCode)
-        {
-            var errorBody = await response.Content.ReadAsStringAsync();
-            
-            try
-            {
-                using var document = await JsonDocument.ParseAsync(new MemoryStream(Encoding.UTF8.GetBytes(errorBody)));
-                if (document.RootElement.TryGetProperty("error", out var errorElement) && 
-                    errorElement.TryGetProperty("code", out var codeElement) && 
-                    codeElement.GetString() == ErrorNotFound)
-                {
-                    throw new InvalidOperationException($"Assistant with ID {_assistantId} not found. Details: {errorBody}");
-                }
-            }
-            catch (JsonException)
-            {
-                // If JSON parsing fails, just throw with the original error message
-            }
-            
-            throw new InvalidOperationException($"Failed to update assistant tools: {response.StatusCode}. Details: {errorBody}");
         }
+
+        if (!vectorStoreConfigured)
+        {
+            throw new InvalidOperationException($"Assistant {_assistantId} is not configured with vector store {_vectorStoreId}");
+        }
+
+        return Task.CompletedTask;
     }
 
     public async Task UpdateAssistantToolsAsync()
     {
-        var requestUrl = $"{_apiUrl}/openai/assistants/{_assistantId}?api-version={_apiVersion}";
+        var requestUrl = GetAssistantUrl($"assistants/{_assistantId}");
         
         var updateRequest = new
         {
@@ -207,87 +196,39 @@ public class AssistantManager : IAssistantManager
         }
     }
 
-    public async Task<string> CreateAssistantAsync(string? systemPrompt)
+    private async Task UpdateAssistantInstructionsAsync(string instructions)
     {
-        var requestUrl = $"{_apiUrl}/openai/assistants?api-version={_apiVersion}";
+        var requestUrl = GetAssistantUrl($"assistants/{_assistantId}");
         
-        // Create tools configuration for file_search
-        var tools = _assistantTools.Select(tool => new { type = tool }).ToList();
-        
-        // Prepare the assistant request with or without vector store ID
-        object assistantRequest;
-        if (!string.IsNullOrEmpty(_vectorStoreId))
+        var updateRequest = new
         {
-            var toolResources = new
-            {
-                file_search = new
-                {
-                    vector_store_ids = new[] { _vectorStoreId }
-                }
-            };
-            
-            assistantRequest = new
-            {
-                model = DefaultModel,
-                name = "PE Assistant",
-                description = "Relias PE Bot Assistant",
-                instructions = systemPrompt ?? "You are a helpful assistant.",
-                tools,
-                tool_resources = toolResources
-            };
-        }
-        else
-        {
-            assistantRequest = new
-            {
-                model = DefaultModel,
-                name = "PE Assistant",
-                description = "Relias PE Bot Assistant",
-                instructions = systemPrompt ?? "You are a helpful assistant.",
-                tools
-            };
-        }
+            instructions = instructions
+        };
 
         var content = new StringContent(
-            JsonSerializer.Serialize(assistantRequest),
+            JsonSerializer.Serialize(updateRequest),
             Encoding.UTF8,
             ContentType);
 
-        var response = await _httpClient.PostAsync(requestUrl, content);
-        
-        if (response.IsSuccessStatusCode)
+        var request = new HttpRequestMessage(HttpMethod.Patch, requestUrl)
         {
-            var responseBody = await response.Content.ReadAsStreamAsync();
-            using var document = await JsonDocument.ParseAsync(responseBody);
-            return document.RootElement.GetProperty("id").GetString() ?? 
-                   throw new InvalidOperationException("Failed to get assistant ID from response");
-        }
-        
-        var errorBody = await response.Content.ReadAsStringAsync();
-        throw new InvalidOperationException($"Failed to create assistant: {response.StatusCode}. Details: {errorBody}");
-    }
+            Content = content
+        };
 
-    public async Task<string> CreateThreadAsync()
-    {
-        var requestUrl = $"{_apiUrl}/openai/threads?api-version={_apiVersion}";
-        var content = new StringContent("{}", Encoding.UTF8, ContentType);
-        var response = await _httpClient.PostAsync(requestUrl, content);
+        var response = await _httpClient.SendAsync(request);
         
-        if (response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
-            var responseBody = await response.Content.ReadAsStreamAsync();
-            using var document = await JsonDocument.ParseAsync(responseBody);
-            return document.RootElement.GetProperty("id").GetString() ?? 
-                   throw new InvalidOperationException("Failed to get thread ID from response");
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to update assistant instructions: {response.StatusCode}. Details: {errorBody}");
         }
         
-        var errorBody = await response.Content.ReadAsStringAsync();
-        throw new InvalidOperationException($"Failed to create thread: {response.StatusCode}. Details: {errorBody}");
+        Console.WriteLine("Successfully updated assistant instructions");
     }
 
     public async Task<IList<AssistantFile>> GetAssistantFilesAsync()
     {
-        var requestUrl = $"{_apiUrl}/openai/assistants/{_assistantId}/files?api-version={_apiVersion}";
+        var requestUrl = GetAssistantUrl($"assistants/{_assistantId}/files");
         
         var response = await _httpClient.GetAsync(requestUrl);
         
@@ -322,7 +263,7 @@ public class AssistantManager : IAssistantManager
 
     public async Task<IList<string>> GetAssistantVectorStoresAsync()
     {
-        var requestUrl = $"{_apiUrl}/openai/assistants/{_assistantId}?api-version={_apiVersion}";
+        var requestUrl = GetAssistantUrl($"assistants/{_assistantId}");
         
         var response = await _httpClient.GetAsync(requestUrl);
         

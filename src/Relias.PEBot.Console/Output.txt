@@ -1,0 +1,266 @@
+Initializing ConfluenceInfoProvider with URL: https://relias.atlassian.net
+API base URL: https://relias.atlassian.net/wiki/api/v2
+Validating Confluence configuration by accessing: https://relias.atlassian.net/wiki/api/v2/spaces
+Confluence configuration validated successfully
+Confluence functions registered with assistant
+Using existing assistant with ID asst_mGiVBZRMuBzyQage3QS9u4ab
+Created new thread with ID thread_SuRGTcwIwQBSrT1lyqH5w5re
+Starting Slack bot...
+SlackSocketClient initialized with AssistantClient
+Getting bot info...
+Bot info retrieved - Name: pe_bot, ID: U08GJU7S7BM, Team: Relias Engineering
+Registering message event handler...
+MessageEventHandler initialized with bot ID: U08GJU7S7BM
+Using AssistantClient: True
+Connecting socket mode client...
+Socket Mode connection successful!
+
+======= BOT CONNECTED SUCCESSFULLY =======
+Connected as: pe_bot (ID: U08GJU7S7BM) to team: Relias Engineering
+To interact with the bot in channels: @mention it using <@U08GJU7S7BM>
+You can also send direct messages to the bot
+Using AssistantClient: True, Using ChatClient: False
+===== TROUBLESHOOTING =====
+If the bot isn't responding, check the following:
+1. Ensure Events API is enabled in your Slack App configuration
+2. Verify the app has these required scopes:
+   - chat:write
+   - channels:history
+   - groups:history
+   - im:history
+3. Verify the app is subscribed to these events:
+   - message.channels
+   - message.im
+4. Make sure the bot is invited to the channel you're testing in
+5. Socket Mode must be enabled in your Slack app configuration
+Bot is now listening for messages. Press Ctrl+C to exit.
+[EVENT RECEIVED] Type: message, Subtype: , User: U2XMZDPJ7, Text: <@U08GJU7S7BM> What are the 5 latest confluence docs updated?
+Message: '<@U08GJU7S7BM> What are the 5 latest confluence docs updated?', IsMention: True, Channel: C08GHQC0LVC
+Processing @mention from user: U2XMZDPJ7
+Processing mention with text: What are the 5 latest confluence docs updated?
+Adding user message to thread thread_SuRGTcwIwQBSrT1lyqH5w5re
+Creating run for thread thread_SuRGTcwIwQBSrT1lyqH5w5re with assistant asst_mGiVBZRMuBzyQage3QS9u4ab
+Run created with ID: run_VZKXxHt2sWgx3qS8Yvs93BI4, initial status: queued
+[EVENT RECEIVED] Type: message, Subtype: , User: U08GJU7S7BM, Text: Processing your request...
+Ignoring message from bot itself or empty message
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: in_progress
+Run status: failed
+Run failed with status: failed
+Error: rate_limit_exceeded: Rate limit is exceeded. Try again in 52 seconds.
+Created new thread with ID thread_gTXTMpS4A1YiCABJHXsSX8fo
+Error getting assistant response: Run failed with status failed
+Stack trace:    at Relias.PEBot.AI.AssistantClientSdk.GetResponseAsync(ChatOptions options) in F:\github\Relias\pe-bot\src\Relias.PEBot.AI\AssistantClient.cs:line 414
+Created new thread with ID thread_7WBQJxMoMpEFcP5nQblSMqU6
+Run failed, attempting to provide fallback response
+Found Confluence function: SearchConfluence
+Last user message: What are the 5 latest confluence docs updated?
+Last user message: 'What are the 5 latest confluence docs updated?'
+Is Confluence request: True
+Extracted search term: 5 latest confluence docs updated
+Is requesting latest documents: True
+Using function: GetRecentUpdates
+Using empty search term to get all recent documents
+Invoking Confluence function with search term: 
+Extracting parameter topic from arguments
+Calling GetRecentUpdates with parameters: 
+Extracting parameter topic from arguments
+Filtering for dates after: 2024-03-12
+No specific topic provided, searching for all recent documents
+Making search API request to: https://relias.atlassian.net/wiki/api/v2/search?type=page&limit=25&excerpt=highlight&query=lastModified%20%3E%3D%202024-03-12
+Retrying with v1 API: https://relias.atlassian.net/wiki/rest/api/content/search?cql=type%3Dpage%20AND%20lastmodified%20%3E%3D%20%222024-03-12%22%20ORDER%20BY%20lastmodified%20DESC&expand=space,version&limit=25
+Function GetRecentUpdates returned: Recently updated pages in Confluence (within the last year):
+
+📄 2024 Ncom DA Sales Ad Specs & Reporting Status
+   Space: Growth Marketing (GM1)
+   Last Updated: just now
+   Link: https://relias.atlassian.net/wiki/spaces/GM1/pages/4428431500
+
+📄 Chapter Refresh 2023
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3476717608
+
+📄 2025 Back-End Meeting Notes
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/4681400324
+
+📄 Back-End Meeting Notes
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3488186400
+
+📄 Back-End Chapter
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3934005
+
+📄 2025-03-19 Dev Chapter Meeting Notes
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/4903764002
+
+📄 2025 Software Dev Chapter Meeting Notes
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/4903763991
+
+📄 Software Dev Meeting Notes
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/4903763980
+
+📄 Website Migration Plan
+   Space: Growth Marketing (GM1)
+   Last Updated: 2 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/GM1/pages/4902486048
+
+📄 Paid Digital Migration Plan
+   Space: Growth Marketing (GM1)
+   Last Updated: 2 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/GM1/pages/4902584381
+
+📄 Social Migration Plan
+   Space: Growth Marketing (GM1)
+   Last Updated: 2 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/GM1/pages/4902977566
+
+📄 Policy Pro integration, translating between Policy Pro keys and Content Library Service keys
+   Space: Relias Platform Modernization (RLMSM)
+   Last Updated: 2 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLMSM/pages/4769710122
+
+📄 Company Acquisitions
+   Space: Growth Marketing (GM1)
+   Last Updated: 2 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/GM1/pages/4902125620
+
+📄 Front-End Meeting Notes
+   Space: Software Development (RLPD)
+   Last Updated: 3 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3933986
+
+📄 Front-End Chapter
+   Space: Software Development (RLPD)
+   Last Updated: 3 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3934004
+
+📄 CM Regulation Recommender
+   Space: Data & Analytics (DA)
+   Last Updated: 3 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/DA/pages/4812079117
+
+📄 Chapter Refresh 2025
+   Space: Software Development (RLPD)
+   Last Updated: 3 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/4903763969
+
+📄 Software Dev Chapter
+   Space: Software Development (RLPD)
+   Last Updated: 3 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/4903698433
+
+📄 Custom Event Nuget Class Library Use and Management
+   Space: Accenture Phase 3 Program (AEO2)
+   Last Updated: 3 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/AEO2/pages/3940188161
+
+📄 Module Archive Content User Guide
+   Space: Quickbase (QUIC)
+   Last Updated: 4 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/QUIC/pages/4902912015
+
+📄 Module Archive Process
+   Space: Quickbase (QUIC)
+   Last Updated: 4 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/QUIC/pages/4430463003
+
+📄 WCEI - Search Pages Mapping (Elasticsearch)
+   Space: Relias Communities Platform (CEMVP)
+   Last Updated: 5 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/CEMVP/pages/4903534593
+
+📄 Change Management Communications
+   Space: TalentGuard (TalentGuar)
+   Last Updated: 5 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/TalentGuar/pages/4851761226
+
+📄 Versioning of Modules+
+   Space: Quickbase (QUIC)
+   Last Updated: 5 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/QUIC/pages/4894261309
+
+📄 Reporting Sisense - Fabric Testing
+   Space: Software Development (RLPD)
+   Last Updated: 5 hours ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/4895080458
+Confluence function result length: 4479
+Confluence function result is null: False
+Confluence function result is empty: False
+Function result contains 'no results' message: False
+Successfully retrieved Confluence search results
+Received AI response: Recently updated pages in Confluence (within the last year):
+
+📄 2024 Ncom DA Sales Ad Specs & Reporting Status
+   Space: Growth Marketing (GM1)
+   Last Updated: just now
+   Link: https://relias.atlassian.net/wiki/spaces/GM1/pages/4428431500
+
+📄 Chapter Refresh 2023
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3476717608
+
+📄 2025 Back-End Meeting Notes
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/4681400324
+
+📄 Back-End Meeting Notes
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3488186400
+
+📄 Back-End Chapter
+   Space: Software Development (RLPD)
+   Last Updated: 1 hour ago
+   Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3934005
+
+Sending AI response to channel C08GHQC0LVC
+[EVENT RECEIVED] Type: message, Subtype: , User: U08GJU7S7BM, Text: Recently updated pages in Confluence (within the last year):  :page_facing_up: 2024 Ncom DA Sales Ad Specs &amp; Reporting Status    Space: Growth Marketing (GM1)    Last Updated: just now    Link: https://relias.atlassian.net/wiki/spaces/GM1/pages/4428431500  :page_facing_up: Chapter Refresh 2023    Space: Software Development (RLPD)    Last Updated: 1 hour ago    Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3476717608  :page_facing_up: 2025 Back-End Meeting Notes    Space: Software Development (RLPD)    Last Updated: 1 hour ago    Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/4681400324  :page_facing_up: Back-End Meeting Notes    Space: Software Development (RLPD)    Last Updated: 1 hour ago    Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3488186400  :page_facing_up: Back-End Chapter    Space: Software Development (RLPD)    Last Updated: 1 hour ago    Link: https://relias.atlassian.net/wiki/spaces/RLPD/pages/3934005  
+Ignoring message from bot itself or empty message
+[EVENT RECEIVED] Type: message, Subtype: , User: U2XMZDPJ7, Text: Give me page 3476717608
+Message: 'Give me page 3476717608', IsMention: False, Channel: C08GHQC0LVC
+[EVENT RECEIVED] Type: message, Subtype: , User: U2XMZDPJ7, Text: <@U08GJU7S7BM> Give me page 3476717608
+Message: '<@U08GJU7S7BM> Give me page 3476717608', IsMention: True, Channel: C08GHQC0LVC
+Processing @mention from user: U2XMZDPJ7
+Processing mention with text: Give me page 3476717608
+Adding user message to thread thread_7WBQJxMoMpEFcP5nQblSMqU6
+Creating run for thread thread_7WBQJxMoMpEFcP5nQblSMqU6 with assistant asst_mGiVBZRMuBzyQage3QS9u4ab
+Run created with ID: run_9y7jAvNEjWNKAJXu4ux09NF4, initial status: queued
+Run status: in_progress
+[EVENT RECEIVED] Type: message, Subtype: , User: U08GJU7S7BM, Text: Processing your request...
+Ignoring message from bot itself or empty message
+Run status: in_progress
+Run status: completed
+Run completed successfully, retrieving messages
+Retrieved 2 messages
+Found assistant message with 1 text content items
+Response text length: 143 characters
+Created new thread with ID thread_muiXN7UCOdFGKgsHS3hI6C1S
+Received AI response: It appears that no documents have been uploaded for me to access. Please upload the relevant document so I can assist you with page 3476717608.
+Sending AI response to channel C08GHQC0LVC
+[EVENT RECEIVED] Type: message, Subtype: , User: U08GJU7S7BM, Text: It appears that no documents have been uploaded for me to access. Please upload the relevant document so I can assist you with page 3476717608.
+Ignoring message from bot itself or empty message
